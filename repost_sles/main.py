@@ -146,22 +146,25 @@ def set_basic_rate_manually(item_code, rate, from_date, to_date):
 		from `tabStock Entry` ste
 		inner join `tabStock Entry Detail` d on d.parent = ste.name
 		where ste.purpose in ('Manufacture', 'Repack')
-			and ste.docstatus = 1
+			and ste.docstatus < 2
 			and d.item_code = %(item_code)s
 			and ifnull(d.t_warehouse, '') != ''
 			{0}
 	""".format(date_condition), args)
 
-	for name in stes:
-		print(name)
+	if stes:
+		for name in stes:
+			print(name)
 
-	frappe.db.sql("""
-		update `tabStock Entry Detail` d
-		inner join `tabStock Entry` ste on d.parent = ste.name
-		set d.rate = %(rate)s, d.set_basic_rate_manually = 1
-		where ste.purpose in ('Manufacture', 'Repack')
-			and ste.docstatus = 1
-			and d.item_code = %(item_code)s
-			and ifnull(d.t_warehouse, '') != ''
-			{0}
-	""".format(date_condition), args)
+		frappe.db.sql("""
+			update `tabStock Entry Detail` d
+			inner join `tabStock Entry` ste on d.parent = ste.name
+			set d.basic_rate = %(rate)s, d.set_basic_rate_manually = 1
+			where ste.purpose in ('Manufacture', 'Repack')
+				and ste.docstatus < 2
+				and d.item_code = %(item_code)s
+				and ifnull(d.t_warehouse, '') != ''
+				{0}
+		""".format(date_condition), args)
+	else:
+		print("No Manufacture/Repack Entry found with Finished Good Item {0} found".format(item_code))
