@@ -6,6 +6,8 @@ from frappe.utils import flt
 
 
 def repost_all_stock_vouchers(from_date, repost_gle=True):
+	import repost_sles.overrides
+
 	frappe.flags.ignored_closed_or_disabled = 1
 	frappe.flags.do_not_update_reserved_qty = 1
 	frappe.db.auto_commit_on_many_writes = 1
