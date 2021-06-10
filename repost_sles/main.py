@@ -10,8 +10,10 @@ def repost_all_stock_vouchers(from_date, repost_gle=True):
 	frappe.flags.do_not_update_reserved_qty = 1
 	frappe.db.auto_commit_on_many_writes = 1
 
+	print("Repost GLEs: {0}".format(repost_gle))
+
 	date_where_condition = ""
-	date_condition = ""
+	date_and_condition = ""
 	if from_date:
 		print("From Date: {0}".format(frappe.format(from_date)))
 		date_condition = "posting_date >= {0}".format(frappe.db.escape(from_date))
@@ -116,3 +118,50 @@ def repost_all_stock_vouchers(from_date, repost_gle=True):
 	if os.path.isfile(filename):
 		print("Deleting Checkpoint")
 		os.remove(filename)
+
+
+def set_basic_rate_manually(item_code, rate, from_date, to_date):
+	rate = flt(rate)
+
+	print("Item Code: {0}".format(item_code))
+	print("Rate: {0}".format(frappe.format(rate)))
+	print("From Date: {0}".format(from_date))
+	print("To Date: {0}".format(to_date))
+
+	date_condition = ""
+	if from_date:
+		date_condition += " and ste.posting_date >= %(from_date)s"
+	if from_date:
+		date_condition += " and ste.posting_date <= %(to_date)s"
+
+	args = {
+		'item_code': item_code,
+		'from_date': from_date,
+		'to_date': to_date,
+		'rate': rate
+	}
+
+	stes = frappe.db.sql_list("""
+		select distinct ste.name
+		from `tabStock Entry` ste
+		inner join `tabStock Entry Detail` d on d.parent = ste.name
+		where ste.purpose in ('Manufacture', 'Repack')
+			and ste.docstatus = 1
+			and d.item_code = %(item_code)s
+			and ifnull(d.t_warehouse, '') != ''
+			{0}
+	""".format(date_condition), args)
+
+	for name in stes:
+		print(name)
+
+	frappe.db.sql("""
+		update `tabStock Entry Detail` d
+		inner join `tabStock Entry` ste on d.parent = ste.name
+		set d.rate = %(rate)s, d.set_basic_rate_manually = 1
+		where ste.purpose in ('Manufacture', 'Repack')
+			and ste.docstatus = 1
+			and d.item_code = %(item_code)s
+			and ifnull(d.t_warehouse, '') != ''
+			{0}
+	""".format(date_condition), args)
