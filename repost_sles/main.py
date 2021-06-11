@@ -149,7 +149,7 @@ def set_basic_rate_manually(item_code, rate, from_date, to_date):
 		select distinct ste.name
 		from `tabStock Entry` ste
 		inner join `tabStock Entry Detail` d on d.parent = ste.name
-		where ste.purpose in ('Manufacture', 'Repack')
+		where ste.purpose in ('Manufacture', 'Repack', 'Material Receipt')
 			and ste.docstatus < 2
 			and d.item_code = %(item_code)s
 			and ifnull(d.t_warehouse, '') != ''
@@ -164,7 +164,7 @@ def set_basic_rate_manually(item_code, rate, from_date, to_date):
 			update `tabStock Entry Detail` d
 			inner join `tabStock Entry` ste on d.parent = ste.name
 			set d.basic_rate = %(rate)s, d.set_basic_rate_manually = 1
-			where ste.purpose in ('Manufacture', 'Repack')
+			where ste.purpose in ('Manufacture', 'Repack', 'Material Receipt')
 				and ste.docstatus < 2
 				and d.item_code = %(item_code)s
 				and ifnull(d.t_warehouse, '') != ''
