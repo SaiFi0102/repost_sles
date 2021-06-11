@@ -11,12 +11,13 @@ from repost_sles.main import repost_all_stock_vouchers, set_basic_rate_manually
 @click.command('repost-sles')
 @click.option('--from-date', required=True, help='Starting date to repost from')
 @click.option('--no-repost-gle', is_flag=True, default=False, help='Do not repost related General Ledger entries')
+@click.option('--update-source-doc', is_flag=True, default=False, help='Do not repost related General Ledger entries')
 @pass_context
-def repost_sles(context, from_date, no_repost_gle=False):
+def repost_sles(context, from_date, no_repost_gle=False, update_source_doc=False):
 	site = get_site(context)
 	with frappe.init_site(site):
 		frappe.connect()
-		repost_all_stock_vouchers(from_date, not no_repost_gle)
+		repost_all_stock_vouchers(from_date, not no_repost_gle, update_source_doc)
 
 
 @click.command('set-manual-fg-rate')

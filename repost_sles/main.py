@@ -5,7 +5,7 @@ import json
 from frappe.utils import flt
 
 
-def repost_all_stock_vouchers(from_date, repost_gle=True):
+def repost_all_stock_vouchers(from_date, repost_gle=True, update_source_doc=False):
 	import repost_sles.overrides
 
 	frappe.flags.ignored_closed_or_disabled = 1
@@ -13,6 +13,7 @@ def repost_all_stock_vouchers(from_date, repost_gle=True):
 	frappe.db.auto_commit_on_many_writes = 1
 
 	print("Repost GLEs: {0}".format(repost_gle))
+	print("Update Source Documents: {0}".format(update_source_doc))
 
 	date_where_condition = ""
 	date_and_condition = ""
@@ -77,9 +78,10 @@ def repost_all_stock_vouchers(from_date, repost_gle=True):
 			if voucher_type == "Stock Entry":
 				doc.calculate_rate_and_amount()
 
-				doc.db_update()
-				for d in doc.items:
-					d.db_update()
+				if update_source_doc:
+					doc.db_update()
+					for d in doc.items:
+						d.db_update()
 
 			elif voucher_type=="Purchase Receipt" and doc.is_subcontracted == "Yes":
 				doc.validate()
