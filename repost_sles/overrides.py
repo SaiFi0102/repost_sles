@@ -68,3 +68,22 @@ def set_basic_rate_for_finished_goods(self, raw_material_cost=0, scrap_material_
 old_set_basic_fg_rate = StockEntry.set_basic_rate_for_finished_goods
 if StockEntry.set_basic_rate_for_finished_goods is not set_basic_rate_for_finished_goods:
 	StockEntry.set_basic_rate_for_finished_goods = set_basic_rate_for_finished_goods
+
+
+def distribute_additional_costs(self):
+	if self.purpose == "Material Issue":
+		self.additional_costs = []
+
+	self.total_additional_costs = sum([flt(t.amount) for t in self.get("additional_costs")])
+	total_basic_amount = sum([flt(t.basic_amount) for t in self.get("items") if t.t_warehouse and t.item_code != 'Flint Cullet'])
+
+	for d in self.get("items"):
+		if d.t_warehouse and total_basic_amount and d.item_code != 'Flint Cullet':
+			d.additional_cost = (flt(d.basic_amount) / total_basic_amount) * self.total_additional_costs
+		else:
+			d.additional_cost = 0
+
+
+old_distribute_additional_costs = StockEntry.distribute_additional_costs
+if StockEntry.distribute_additional_costs is not distribute_additional_costs:
+	StockEntry.distribute_additional_costs = distribute_additional_costs
