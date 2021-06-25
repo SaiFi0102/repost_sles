@@ -74,6 +74,12 @@ def repost_all_stock_vouchers(from_date, repost_gle=True, update_source_doc=Fals
 	i = 0
 	for voucher_type, voucher_no in vouchers:
 		try:
+			if not frappe.db.exists(voucher_type, voucher_no):
+				i += 1
+				print("{0} / {1}: {2} {3} NOT FOUND! Skipping"
+					.format(i, len(vouchers), voucher_type, voucher_no))
+				continue
+
 			doc = frappe.get_doc(voucher_type, voucher_no)
 			if voucher_type == "Stock Entry":
 				doc.calculate_rate_and_amount()
