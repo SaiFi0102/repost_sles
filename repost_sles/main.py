@@ -83,8 +83,14 @@ def repost_all_stock_vouchers(from_date, repost_gle=True, update_source_doc=Fals
 					for d in doc.items:
 						d.db_update()
 
-			elif voucher_type=="Purchase Receipt" and doc.is_subcontracted == "Yes":
-				doc.validate()
+			elif voucher_type=="Purchase Receipt":
+				if doc.is_subcontracted == "Yes":
+					doc.validate()
+
+				default_cost_center = frappe.get_cached_value("Company", doc.company, "cost_center")
+				for d in doc.items:
+					if not d.cost_center:
+						d.cost_center = default_cost_center
 
 			elif voucher_type=="Delivery Note":
 				for d in doc.items:
