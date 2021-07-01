@@ -7,6 +7,7 @@ from frappe.utils import flt
 
 def repost_all_stock_vouchers(from_date, repost_gle=True, update_source_doc=False):
 	import repost_sles.overrides
+	from manufacturing_dv.events.stock_entry import validate
 
 	frappe.flags.ignored_closed_or_disabled = 1
 	frappe.flags.do_not_update_reserved_qty = 1
@@ -83,6 +84,7 @@ def repost_all_stock_vouchers(from_date, repost_gle=True, update_source_doc=Fals
 			doc = frappe.get_doc(voucher_type, voucher_no)
 			if voucher_type == "Stock Entry":
 				doc.calculate_rate_and_amount()
+				validate(doc, set_cullet_rate=False)
 
 				if update_source_doc:
 					doc.db_update()
